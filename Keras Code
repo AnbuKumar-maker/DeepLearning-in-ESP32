@@ -1,0 +1,43 @@
+from keras import *
+from keras.preprocessing.image import load_img,array_to_img,img_to_array
+ 
+from keras.models import load_model
+import numpy as np
+import pandas as pd
+#mdl = load_model('resnet50.h5')
+mdl=load_model("resnet50.h5")
+from urllib import request
+
+
+import cv2
+
+class_names = pd.read_csv("coco_classes.csv")
+cap = cv2.VideoCapture(1)
+t_values = [893,898,968,673,549]
+while(True):
+    # Capture frame-by-frame
+    for k  in  range(25):
+        ret, frame = cap.read()
+
+    # Our operations on the frame come here
+    data = np.array([cv2.resize(frame,(224,224))])
+    img = mdl.predict(data)
+    
+    #if img in t_values:
+    if(img.flatten()[np.argmax(img)]>0.4):
+        try:
+            request.urlopen("http://192.168.43.186/"+class_names[str(np.argmax(img))][1]+"/L")
+            print("http://192.168.43.186/"+class_names[str(np.argmax(img))][1]+"/L")
+        except Exception as e:
+            print(e)
+    #outputs = np.where(np.argmax(img))
+    
+    
+    print(class_names[str(np.argmax(img))])
+    print(img.flatten()[np.argmax(img)])
+    cv2.imshow('frame',frame)
+    
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+cap.release()
+cv2.destroyAllWindows()
